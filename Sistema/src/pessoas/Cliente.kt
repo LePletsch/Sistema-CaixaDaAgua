@@ -10,4 +10,5 @@ class Cliente (
     telefone: String,
     tipo : Pessoas
 
-) : Pessoa (nome, email, telefone, tipo)
+) : Pessoa (nome, email, telefone, tipo) {
+}

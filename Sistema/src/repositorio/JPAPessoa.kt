@@ -1,10 +1,12 @@
 package repositorio
 
+import enumeradores.Pessoas
 import pessoas.Cliente
 import pessoas.Fornecedor
 import pessoas.Funcionario
 import pessoas.Pessoa
 import produto.CaixaDaAgua
+import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Statement
 
@@ -83,12 +85,30 @@ class JPAPessoa() {
         }
     }
 
-    fun listarPessoas() {
+    fun listarPessoas(p: Pessoas) {
         try {
             jpa.conectar()
             val stmt = jpa.c!!.createStatement()
+            var sql = ""
 
-            val sql = "SELECT * from pessoa"
+            when (p) {
+                Pessoas.CLIENTE -> {
+                    sql = "SELECT pessoa.id, pessoa.nome, pessoa.email, pessoa.telefone, pessoa.tipo, cliente.cpf " +
+                            "FROM pessoa JOIN cliente ON pessoa.id = cliente.id_pessoa " +
+                            "WHERE pessoa.tipo = 'CLIENTE'"
+                }
+                Pessoas.FORNECEDOR -> {
+                    sql = "SELECT pessoa.id, pessoa.nome, pessoa.email, pessoa.telefone, pessoa.tipo, fornecedor.cnpj " +
+                            "FROM pessoa JOIN fornecedor ON pessoa.id = fornecedor.id_pessoa " +
+                            "WHERE pessoa.tipo = 'FORNECEDOR'"
+                }
+                Pessoas.FUNCIONARIO -> {
+                    sql = "SELECT pessoa.id, pessoa.nome, pessoa.email, pessoa.telefone, pessoa.tipo, " +
+                            "funcionarios.cpf, funcionarios.setor, funcionarios.salario, funcionarios.turno " +
+                            "FROM pessoa JOIN funcionarios ON pessoa.id = funcionarios.id_pessoa " +
+                            "WHERE pessoa.tipo = 'FUNCIONARIO'"
+                }
+            }
             //metadados vem em forma de lista, ResultSet
             val metadados = stmt.executeQuery(sql)
 
@@ -116,30 +136,83 @@ class JPAPessoa() {
 
     }//Fim listar
 
-    fun editarCaixa(caixa: CaixaDaAgua, id: Int) {
+    fun tipoPessoa(id: Int): String? {
+        var tipo: String? = null
         try {
             jpa.conectar()
-            val sql =
-                "UPDATE caixa_da_agua SET preco = ?, marca = ?, modelo = ?, formato = ?, cor = ?, material = ?, dimensao = ?, estoque = ? WHERE id = ?"
+            val sql = "SELECT tipo FROM pessoa WHERE id = ?"
+            val stmt = jpa.c!!.prepareStatement(sql)
+            stmt.setInt(1, id)
+            val rs = stmt.executeQuery()
+
+            if (rs.next()) {
+                tipo = rs.getString("tipo")
+            }
+
+            rs.close()
+            stmt.close()
+            jpa.c!!.close()
+
+        } catch (e: SQLException) {
+            println(e.printStackTrace())
+        }
+
+        return tipo
+    }
+
+    fun editarPessoas(p : Pessoa, id: Int) {
+        try {
+            jpa.conectar()
+            val sql = "UPDATE pessoa SET nome = ?, email = ?, telefone = ?, tipo = ? WHERE id = ?"
             //Continuar a logica para os outros itens
 
             val stmt = jpa.c!!.prepareStatement(sql)
 
-            val doublePrecision = jpa.c!!.createArrayOf("float8", caixa.dimensao.toTypedArray())
-
-            stmt.setBigDecimal(1, caixa.preco)
-            stmt.setString(2, caixa.marca.name)
-            stmt.setString(3, caixa.modelo.name)
-            stmt.setString(4, caixa.formato.name)
-            stmt.setString(5, caixa.cor.name)
-            stmt.setString(6, caixa.material.name)
-            stmt.setArray(7, doublePrecision)
-            stmt.setInt(8, caixa.estoque)
-            stmt.setInt(9, id)
+            stmt.setString(1, p.nome)
+            stmt.setString(2, p.email)
+            stmt.setString(3, p.telefone)
+            stmt.setString(4, p.tipo.name)
+            stmt.setInt(5, id)
 
             stmt.executeUpdate()//Faz as alterações e manda pro banco
 
             stmt.close()
+
+            when(p){
+                is Cliente -> {
+                    val sql = "UPDATE cliente SET cpf = ? WHERE id_pessoa = ?"
+                    val stmt = jpa.c!!.prepareStatement(sql)
+
+                    stmt.setString(1, p.cpf)
+                    stmt.setInt(2, id)
+                    stmt.executeUpdate()//Faz as alterações e manda pro banco
+                    stmt.close()
+                }
+
+                is Fornecedor -> {
+                    val sql = "UPDATE fornecedor SET cnpj = ? WHERE id_pessoa = ?"
+                    val stmt = jpa.c!!.prepareStatement(sql)
+
+                    stmt.setString(1, p.cnpj)
+                    stmt.setInt(2, id)
+                    stmt.executeUpdate()//Faz as alterações e manda pro banco
+                    stmt.close()
+                }
+
+                is Funcionario -> {
+                    val sql = "UPDATE funcionarios SET cpf = ?, setor = ?, salario = ?, turno = ? WHERE id_pessoa = ?"
+                    val stmt = jpa.c!!.prepareStatement(sql)
+
+                    stmt.setString(1, p.cpf)
+                    stmt.setString(2, p.setor.name)
+                    stmt.setBigDecimal(3, p.salario)
+                    stmt.setString(4, p.turno.name)
+                    stmt.setInt(5, id)
+                    stmt.executeUpdate()//Faz as alterações e manda pro banco
+                    stmt.close()
+                }
+            }
+
             jpa.c!!.close()
 
         } catch (e: SQLException) {

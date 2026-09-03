@@ -9,8 +9,12 @@ import pessoas.Funcionario
 import pessoas.Pessoa
 import repositorio.JPAPessoa
 
-fun cadastrarNovaPessoa(){
+fun EditarPessoa(){
     val jpa = JPAPessoa()
+    listarPessoa()
+
+    println("Digite o id do cadastro que deseja alterar: ")
+    val id = readln().toInt()
 
     println("Digite o nome: ")
     val nome = readln()
@@ -21,19 +25,14 @@ fun cadastrarNovaPessoa(){
     println("Digite o telefone: ")
     val telefone = readln()
 
-    println("Escolha o tipo de cadastro: ")
-    Pessoas.entries.forEach { tipo ->
-        println("${tipo.ordinal}  - ${tipo.name}")
-    }
-    println("Numero do tipo: ")
-    val tipo = readln().toInt()
+    val tipo = jpa.tipoPessoa(id)
 
     val pessoa: Pessoa = when (tipo) {
-        0 -> {
+        "CLIENTE" -> {
             println("Digite o cpf: ")
-            Cliente(cpf = readln(), nome = nome, email = email, telefone = telefone, tipo = Pessoas.entries[tipo])
+            Cliente(cpf = readln(), nome = nome, email = email, telefone = telefone, tipo = Pessoas.CLIENTE)
         }
-        1 -> {
+        "FUNCIONARIO" -> {
             println("Digite o cpf: ")
             val cpf = readln()
 
@@ -54,11 +53,11 @@ fun cadastrarNovaPessoa(){
             println("Numero do setor: ")
             val turno = readln().toInt()
 
-            Funcionario(cpf = cpf, setor = Setor.entries[setor], salario = salario, turno = Turno.entries[turno], nome = nome, email = email, telefone = telefone, tipo = Pessoas.entries[tipo])
+            Funcionario(cpf = cpf, setor = Setor.entries[setor], salario = salario, turno = Turno.entries[turno], nome = nome, email = email, telefone = telefone, tipo = Pessoas.FUNCIONARIO)
         }
-        2 -> {
+        "FORNECEDOR" -> {
             println("Digite o cnpj: ")
-            Fornecedor(cnpj = readln(), nome = nome, email = email, telefone = telefone, tipo = Pessoas.entries[tipo])
+            Fornecedor(cnpj = readln(), nome = nome, email = email, telefone = telefone, tipo = Pessoas.FORNECEDOR)
         }
         else -> {
             println("Tipo invalido!")
@@ -66,6 +65,6 @@ fun cadastrarNovaPessoa(){
         }
     }
 
-    jpa.salvarPessoa(pessoa)
+    jpa.editarPessoas(pessoa,id)
 
 }

@@ -6,7 +6,9 @@ import sistema.caixa_da_agua.cadastrarNovaCaixa
 import sistema.caixa_da_agua.editarCaixa
 import sistema.caixa_da_agua.excluirCaixa
 import sistema.caixa_da_agua.listarCaixa
+import sistema.pessoa.EditarPessoa
 import sistema.pessoa.cadastrarNovaPessoa
+import sistema.pessoa.listarPessoa
 
 fun menuInicial() {
     do {
@@ -70,8 +72,8 @@ fun menuInicial() {
                             when (op) {
                                 "0" -> break
                                 "1" -> cadastrarNovaPessoa()
-                                "2" -> editarCaixa()
-                                "3" -> listarCaixa()
+                                "2" -> EditarPessoa()
+                                "3" -> listarPessoa()
                                 "4" -> excluirCaixa()
                                 "5" -> return
                                 else -> println("Ação Inválida!")
